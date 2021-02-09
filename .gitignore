@@ -1,9 +1,16 @@
+# files
 Makefile
 Makefile.in
-stamp-h1
+aclocal.m4
+compile
 config.log
+config.status
 configure
+depcomp
+install-sh
+missing
+stamp-h1
 
 # directories
-autom4te.cache
 .deps
+autom4te.cache
