@@ -16,6 +16,9 @@ dnl This has to happen before any other AC_* calls, so leave it here please.
 : ${CXXFLAGS=""}
 : ${OBJCFLAGS=""}
 
+
+AC_CONFIG_MACRO_DIR([m4])
+
 dnl Set gtk3vicemon compiler flags (can be overridden by the user)
 MON_CPPFLAGS=""
 MON_CFLAGS="-g -O3 -Wall -Wextra"
@@ -37,7 +40,9 @@ AC_CHECK_PROG([HAVE_XMLLINT], [xmllint], [yes], [no])
 dnl Check for glib-compile-resources
 AC_CHECK_PROG([HAVE_GLIB_COMPILE_RESOURCES], [glib-compile-resources], [yes], [no])
 
+dnl Check for ranlib
 AC_PROG_RANLIB
+
 
 dnl
 dnl Check for libraries
@@ -47,6 +52,30 @@ dnl Gtk3 >= 3.24
 PKG_CHECK_MODULES([GTK], [gtk+-3.0 >= 3.24])
 MON_CFLAGS="$MON_CFLAGS $GTK_CFLAGS"
 MON_LDFLAGS="$MON_LDFLAGS $GTK_LIBS"
+
+
+dnl Try to add CFLAGS
+m4_foreach([flag],
+           [[-Wall],
+            [-Wformat],
+            [-Wformat-signedness],
+            [-Wformat-pedantic],
+            [-Wshadow],
+            [-Wpointer-arith],
+            [-Wstrict-prototypes],
+            [-Wuninitialized],
+            [-Wunreachable-code],
+            [-Wno-unused-parameter],
+            [-Wmacro-redefined],
+            [-Werror=implicit-function-declaration],
+            [-Wfatal-errors],
+            [-fdiagnostics-absolute-paths],
+            [-Wshorten-64-to-32],
+            [-Wdiscarded-qualifiers],
+            [-Wconversion]],
+           [TEST_FLAG=flag
+            MON_CFLAG_REQUEST([$TEST_FLAG])
+           ])
 
 AC_SUBST(MON_CPPFLAGS)
 AC_SUBST(MON_CFLAGS)
@@ -62,3 +91,10 @@ AC_CONFIG_FILES([
 ])
 AC_OUTPUT
 
+
+echo
+echo "Configuration:"
+echo "--------------"
+echo "MON_CPPFLAGS: $MON_CFLAGS"
+echo "MON_CFLAGS:   $MON_CFLAGS"
+echo "MON_LDFLAGS:  $MON_LDFLAGS"
