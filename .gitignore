@@ -1,0 +1,9 @@
+Makefile
+Makefile.in
+stamp-h1
+config.log
+configure
+
+# directories
+autom4te.cache
+.deps

@@ -1,0 +1,17 @@
+<!-- vim: set et ts=2 sw=2 sts=2: -->
+<!-- Main application menu -->
+
+<interface>
+  <menu id="app-menu">
+    <submenu>
+      <attribute name="label">File</attribute>
+      <section>
+        <item>
+          <attribute name="label">Quit</attribute>
+          <attribute name="action">app.quit</attribute>
+        </item>
+      </section>
+    </submenu>
+  </menu>
+</interface>
+

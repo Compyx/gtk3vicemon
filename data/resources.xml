@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<gresources>
+    <gresource prefix="/org/vice/gtk3vicemon">
+        <file compressed="true" alias="app-menu.xml">ui/app-menu.xml</file>
+    </gresource>
+</gresources>
+

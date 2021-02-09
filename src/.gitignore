@@ -1,0 +1,7 @@
+gtk3vicemon
+*.o
+app-resources*
+config.h*
+Makefile
+Makefile.in
+stamp-h1
