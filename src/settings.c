@@ -1,0 +1,132 @@
+/* vim: set et ts=4 sw=4 sts=4 syntax=c.doxygen: */
+
+/** \file   settings.c
+ * \brief   Settings management
+ *
+ * \author  Bas Wassink <b.wassink@ziggo.nl>
+ */
+
+/*
+    Gtk3 VICE Monitor
+    Copyright (C) 2021  Bas Wassink
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License along
+    with this program; if not, write to the Free Software Foundation, Inc.,
+    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+    This General Public License does not permit incorporating your program into
+    proprietary programs.  If your program is a subroutine library, you may
+    consider it more useful to permit linking proprietary applications with the
+    library.  If this is what you want to do, use the GNU Lesser General
+    Public License instead of this License.
+*/
+
+#include "config.h"
+
+#include <gtk/gtk.h>
+#include <glib.h>
+#include <glib/gstdio.h>
+#include <fcntl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <stdlib.h>
+
+#include "debug.h"
+
+#include "settings.h"
+
+
+/** \brief  Get XDG path to the application config dir
+ *
+ * \return  config dir, free with g_free()
+ */
+char *settings_get_dir(void)
+{
+    char *tmp;
+
+    tmp = getenv("XDG_CONFIG_HOME");
+    if (tmp == NULL) {
+        return g_strconcat(getenv("HOME"), "/.config/gtk3vicemon", NULL);
+    } else {
+        return g_strconcat(tmp, "/gtk3vicemon", NULL);
+    }
+}
+
+
+
+/** \brief  Create XDG path to the application config dir
+ *
+ * \return  TRUE on success
+ */
+gboolean settings_create_dir(void)
+{
+    GStatBuf st;
+    char *tmp;
+    char *config_home;
+    char *config_path;
+
+    /* get XDG_CONFIG_HOME, otherwise create the string */
+    debug_msg("Checking $XDG_CONFIG_HOME");
+    tmp = getenv("XDG_CONFIG_HOME");
+    if (tmp == NULL) {
+        char *home;
+
+        debug_msg("Null, construct $HOME/.config");
+        home = getenv("HOME");
+        config_home = g_strconcat(home, "/.config", NULL);
+    } else {
+        config_home = g_strdup(tmp);
+    }
+
+    /* check if XDG_CONFIG_HOME exists, otherwise try to create it */
+    debug_msg("Getting info on '%s':", config_home);
+    if (g_stat(config_home, &st) < 0) {
+        debug_msg("Not found, try to create:");
+        if (g_mkdir(config_home, 0755) < 0) {
+            debug_msg("couldn't create dir, giving up.");
+            g_free(config_home);
+            return FALSE;
+        }
+    } else {
+        if ((st.st_mode & S_IFDIR) == 0) {
+            debug_msg("'%s' is not a directory, giving up.", config_home);
+            g_free(config_home);
+            return FALSE;
+        } else {
+            debug_msg("OK, '%s' is a directory.", config_home);
+        }
+    }
+
+    /* check for ~/.config/gtk3vicemon */
+    config_path = g_strconcat(config_home, "/gtk3vicemon", NULL);
+    g_free(config_home);
+    debug_msg("Checking for '%s'.", config_path);
+    if (g_stat(config_path, &st) < 0) {
+        debug_msg("Doesn't exist, create.");
+        if (g_mkdir(config_path, 0755) < 0) {
+            debug_msg("Failed to create directory, giving up.");
+            g_free(config_path);
+            return FALSE;
+        }
+        debug_msg("OK");
+    }
+    /* path exists, is it a directory? */
+    if ((st.st_mode & S_IFDIR) == 0) {
+        debug_msg("Exists, but is not a directory, giving up.");
+        g_free(config_path);
+        return FALSE;
+    }
+    debug_msg("OK.");
+    g_free(config_path);
+    return TRUE;
+}

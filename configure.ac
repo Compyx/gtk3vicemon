@@ -53,6 +53,17 @@ PKG_CHECK_MODULES([GTK], [gtk+-3.0 >= 3.24])
 MON_CFLAGS="$MON_CFLAGS $GTK_CFLAGS"
 MON_LDFLAGS="$MON_LDFLAGS $GTK_LIBS"
 
+dnl
+dnl Add configure options
+dnl
+
+AC_ARG_ENABLE([debug],
+              AS_HELP_STRING([--enable-debug],
+                             [Enable debug messages on stdout]))
+AS_IF([test "x$enable_debug" = "xyes"],
+      [AC_DEFINE([HAVE_DEBUG], 1, [Enable debugg messages on stdout])])
+
+
 
 dnl Try to add CFLAGS
 m4_foreach([flag],
@@ -87,6 +98,7 @@ AC_CONFIG_FILES([
     data/Makefile
     data/ui/Makefile
     src/Makefile
+    src/mon/Makefile
     src/ui/Makefile
 ])
 AC_OUTPUT
@@ -98,3 +110,5 @@ echo "--------------"
 echo "MON_CPPFLAGS: $MON_CFLAGS"
 echo "MON_CFLAGS:   $MON_CFLAGS"
 echo "MON_LDFLAGS:  $MON_LDFLAGS"
+echo
+echo "--enable-debug: $enable_debug"

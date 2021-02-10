@@ -2,24 +2,31 @@
 #
 # root Makefile.am for gtk3vicemon
 
-SUBDIRS = ui
+SUBDIRS = mon ui
 
 
 bin_PROGRAMS = gtk3vicemon
 
 AM_CPPFLAGS = \
 	@MON_CPPFLAGS@ \
-	-I$(top_srcdir)/src/ui
+	-I$(top_srcdir)/src/ui \
+	-I$(top_srcdir)/src/mon
 AM_CFLAGS = @MON_CFLAGS@
 AM_LDFLAGS = @MON_LDFLAGS@
 
-LDADD = $(top_builddir)/src/ui/libui.a
+LDADD = $(top_builddir)/src/ui/libui.a \
+	$(top_builddir)/src/mon/libmon.a
 
 gtk3vicemon_SOURCES = \
 	main.c \
 	app-resources.c \
-	app-resources.h
+	app-resources.h \
+	settings.c
 
+
+EXTRA_DIST = \
+	debug.h \
+	settings.h
 
 RESOURCE_FILES = \
 	$(top_srcdir)/data/ui/app-menu.xml

@@ -38,6 +38,60 @@
 
 #include "app-resources.h"
 #include "appwindow.h"
+#include "debug.h"
+#include "connect_test.h"
+#include "settings.h"
+
+
+static GtkWidget *main_window = NULL;
+
+
+/** \brief  Handler for 'app.quit'
+ *
+ * \param[in]   action      action
+ * \param[in]   parameter   action parameter
+ * \param[in]   dat         user data
+ */
+static void on_app_quit(GSimpleAction *action,
+                        GVariant      *parameter,
+                        gpointer       data)
+{
+    debug_msg("called: exiting application.");
+    gtk_widget_destroy(GTK_WIDGET(main_window));
+}
+
+
+/** \brief  Handler for 'app.preferences'
+ *
+ * \param[in]   action      action
+ * \param[in]   parameter   action parameter
+ * \param[in]   dat         user data
+ */
+static void on_app_preferences(GSimpleAction *action,
+                        GVariant      *parameter,
+                        gpointer       data)
+{
+    GtkWidget *dialog;
+
+    debug_msg("called: showing preferences.");
+
+}
+
+
+
+/** \brief  List of event handlers for the 'app' actions
+ */
+static const GActionEntry app_actions[] = {
+    {
+        .name = "quit",
+        .activate = on_app_quit
+    },
+
+    {
+        .name = "preferences",
+        .activate = on_app_preferences
+    }
+};
 
 
 /** \brief  Handler for the 'activate' event of the application
@@ -59,8 +113,24 @@ static void on_app_activate(GtkApplication *app,
     g_object_unref(builder);
 
     window = appwindow_create(app);
+    main_window = window;
+
+    /* add app action handlers */
+    g_action_map_add_action_entries(
+            G_ACTION_MAP(app),
+            app_actions,
+            G_N_ELEMENTS(app_actions),
+            window);
+
     gtk_widget_show_all(window);
+#if 0
+    connect_test();
+#endif
+
 }
+
+
+
 
 
 /** \brief  Program entry point
@@ -76,6 +146,13 @@ int main(int argc, char *argv[])
 {
     GtkApplication *app;
     int status;
+
+    debug_msg("called.");
+
+    /* create settings dir if it doesn't exist */
+    if (!settings_create_dir()) {
+        return EXIT_FAILURE;
+    }
 
     app = gtk_application_new(
             "org.vice.gtk3vicemon",
