@@ -42,8 +42,14 @@
 #include <stdlib.h>
 
 #include "debug.h"
+#include "app-resources.h"
+
 
 #include "settings.h"
+
+
+
+static GKeyFile *keyfile;
 
 
 /** \brief  Get XDG path to the application config dir
@@ -130,3 +136,113 @@ gboolean settings_create_dir(void)
     g_free(config_path);
     return TRUE;
 }
+
+
+
+gboolean settings_read(void)
+{
+    char *path;
+    char *config;
+    GError *err = NULL;
+
+    config = settings_get_dir();
+    path = g_strconcat(config, "/settings.ini", NULL);
+
+    debug_msg("Attempting to load '%s'.", path);
+    /* attempt to load setting file */
+    if (!g_key_file_load_from_file(
+                keyfile,
+                path,
+                G_KEY_FILE_KEEP_COMMENTS,
+                &err)) {
+
+        GError *err2 = NULL;
+        GError *err3 = NULL;
+
+        debug_msg("error %d: %s", err->code, err->message);
+        /* use default settings */
+        debug_msg("Attempting to load default settings from GResource.");
+        GBytes *data = g_resources_lookup_data(
+                "/org/vice/gtk3vicemon/settings.ini",
+                G_RESOURCE_FLAGS_NONE,
+                &err2);
+        if (data == NULL) {
+            error_msg("Data is null: %d: %s", err2->code, err2->message);
+            return FALSE;
+        }
+
+        /* Store default settings in the keyfile */
+        if (!g_key_file_load_from_bytes(
+                keyfile,
+                data,
+                0,
+                &err3)) {
+            /* report error */
+            error_msg("Failed to load default settings: %d: %s",
+                    err3->code, err3->message);
+            return FALSE;
+        }
+    }
+
+    g_free(path);
+    return TRUE;
+}
+
+
+gboolean settings_set(const char *key, const char *value)
+{
+    return TRUE;
+}
+
+
+gboolean settings_get(const char *key, const char **value)
+{
+    return TRUE;
+}
+
+
+
+
+
+/** \brief  Initialize the settings system
+ *
+ * Check/create the settings dir and file.
+ *
+ * \return  TRUE on success
+ */
+gboolean settings_init(void)
+{
+    keyfile = NULL;
+
+    if (!settings_create_dir()) {
+        error_msg("~/.config/gtk3vicemon/ is not a directory or could not be"
+                " created.");
+        return FALSE;
+    }
+
+    keyfile = g_key_file_new();
+    if (!settings_read()) {
+        error_msg("OOPS");
+        return FALSE;
+    }
+
+    gsize length = 0;
+    GError *err = NULL;
+    gchar **keys = g_key_file_get_keys(keyfile, "VICE", &length, &err);
+    debug_msg("Dumping section [VICE]:");
+    for (gsize i = 0; i < length; i++) {
+        g_print("%-10s-> %s\n", keys[i],
+                g_key_file_get_string(keyfile, "VICE", keys[i], &err));
+    }
+
+    return TRUE;
+}
+
+
+void settings_exit(void)
+{
+    if (keyfile != NULL) {
+        g_key_file_free(keyfile);
+    }
+}
+

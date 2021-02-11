@@ -4,5 +4,8 @@
     <gresource prefix="/org/vice/gtk3vicemon">
         <file compressed="true" alias="app-menu.xml">ui/app-menu.xml</file>
     </gresource>
+    <gresource prefix="/org/vice/gtk3vicemon">
+        <file compressed="true" alias="settings.ini">settings.ini</file>
+    </gresource>
 </gresources>
 

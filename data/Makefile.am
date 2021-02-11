@@ -3,3 +3,7 @@
 # Makefile.am for /data
 
 SUBDIRS = ui
+
+
+EXTRA_DIST = \
+	settings.ini

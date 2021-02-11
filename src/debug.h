@@ -36,6 +36,8 @@
 # include <stdio.h>
 # include <stdlib.h>
 # include <gtk/gtk.h>
+# include <glib.h>
+
 
 /** \def debug_msg
  * \brief  Print debugging info on stdout
@@ -82,7 +84,6 @@
 
 /* HAVE_DEBUG comes from configure */
 # ifdef HAVE_DEBUG
-#  include <glib.h>
 
 #  define debug_msg(...) \
     g_print("[debug] %s:%d::%s(): ", __FILE__, __LINE__, __func__); \
@@ -131,6 +132,13 @@
             "%s:%d: error: function %s() is not implemented yet, exiting\n", \
             __FILE__, __LINE__, __func__); \
     exit(1)
+
+
+# define error_msg(...) \
+    g_printerr("[Error] %s:%d::%s(): ", __FILE__, __LINE__, __func__); \
+    g_printerr(__VA_ARGS__); \
+    g_printerr("\n");
+
 
 
 #endif  /* DEBUG_H */
