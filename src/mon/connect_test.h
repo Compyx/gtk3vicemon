@@ -35,6 +35,8 @@
 #ifndef MON_CONNECT_TEST_H
 #define MON_CONNECT_TEST_H
 
-void connect_test(void);
+#include <stdbool.h>
+
+bool connect_test(void);
 
 #endif

@@ -121,10 +121,6 @@ static void on_app_activate(GtkApplication *app,
             window);
 
     gtk_widget_show_all(window);
-#if 0
-    connect_test();
-#endif
-
 }
 
 

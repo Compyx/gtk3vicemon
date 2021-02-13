@@ -189,14 +189,24 @@ gboolean settings_read(void)
 }
 
 
-gboolean settings_set(const char *key, const char *value)
+gboolean settings_set(const char *group, const char *key, const char *value)
 {
     return TRUE;
 }
 
 
-gboolean settings_get(const char *key, const char **value)
+gboolean settings_get(const char *group, const char *key, const char **value)
 {
+    gchar *s;
+    GError *err = NULL;
+
+    s = g_key_file_get_value(keyfile, group, key, &err);
+    if (s == NULL) {
+        debug_msg("oops: %d: %s", err->code, err->message);
+        *value = NULL;
+        return FALSE;
+    }
+    *value = s;
     return TRUE;
 }
 

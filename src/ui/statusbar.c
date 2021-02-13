@@ -1,7 +1,7 @@
 /* vim: set et ts=4 sw=4 sts=4 syntax=c.doxygen: */
 
-/** \file   appwindow.c
- * \brief   Main application window
+/** \file   statusbar.c
+ * \brief   Main window statusbar
  *
  * \author  Bas Wassink <b.wassink@ziggo.nl>
  */
@@ -31,34 +31,29 @@
     Public License instead of this License.
 */
 
+
 #include "config.h"
+
 #include <gtk/gtk.h>
-#include <stdbool.h>
+
+#include "settings.h"
+#include "connection-widget.h"
 
 #include "statusbar.h"
-#include "../mon/connect_test.h"
-
-#include "appwindow.h"
 
 
-/** \brief  Create the main application window
- *
- * \param[in]   app GtkApplication
- *
- * \return  GtkApplicationWindow
- */
-GtkWidget *appwindow_create(GtkApplication *app)
+GtkWidget *statusbar_create(int state)
 {
-    GtkWidget *window;
-    GtkWidget *statusbar;
-    bool conn;
+    GtkWidget *grid;
+    GtkWidget *connection;
 
-    window = gtk_application_window_new(app);
-    gtk_window_set_default_size(GTK_WINDOW(window), 640, 480);
-    gtk_window_set_title(GTK_WINDOW(window), "Gtk3 VICE Monitor");
+    grid = gtk_grid_new();
+    gtk_widget_set_hexpand(grid, FALSE);
+    gtk_widget_set_valign(grid, GTK_ALIGN_END);
 
-    conn = connect_test();
-    statusbar = statusbar_create(conn);
-    gtk_container_add(GTK_CONTAINER(window), statusbar);
-    return window;
+    connection = connection_widget_create(state);
+    gtk_grid_attach(GTK_GRID(grid), connection, 0, 0, 1, 1);
+
+    gtk_widget_show_all(grid);
+    return grid;
 }

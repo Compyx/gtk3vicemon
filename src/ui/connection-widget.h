@@ -1,7 +1,7 @@
 /* vim: set et ts=4 sw=4 sts=4 syntax=c.doxygen: */
 
-/** \file   appwindow.c
- * \brief   Main application window
+/** \file   connection-widget.h
+ * \brief   Statusbar connection widget - header
  *
  * \author  Bas Wassink <b.wassink@ziggo.nl>
  */
@@ -31,34 +31,11 @@
     Public License instead of this License.
 */
 
-#include "config.h"
+#ifndef UI_CONNECTION_WIDGET_H_
+#define UI_CONNECTION_WIDGET_H_
+
 #include <gtk/gtk.h>
-#include <stdbool.h>
 
-#include "statusbar.h"
-#include "../mon/connect_test.h"
+GtkWidget *connection_widget_create(int state);
 
-#include "appwindow.h"
-
-
-/** \brief  Create the main application window
- *
- * \param[in]   app GtkApplication
- *
- * \return  GtkApplicationWindow
- */
-GtkWidget *appwindow_create(GtkApplication *app)
-{
-    GtkWidget *window;
-    GtkWidget *statusbar;
-    bool conn;
-
-    window = gtk_application_window_new(app);
-    gtk_window_set_default_size(GTK_WINDOW(window), 640, 480);
-    gtk_window_set_title(GTK_WINDOW(window), "Gtk3 VICE Monitor");
-
-    conn = connect_test();
-    statusbar = statusbar_create(conn);
-    gtk_container_add(GTK_CONTAINER(window), statusbar);
-    return window;
-}
+#endif
