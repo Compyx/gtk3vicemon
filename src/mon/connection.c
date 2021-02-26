@@ -1,7 +1,7 @@
 /* vim: set et ts=4 sw=4 sts=4 syntax=c.doxygen: */
 
-/** \file   connect_test.c
- * \brief   Test connecting to the binary monitor
+/** \file   connection.c
+ * \brief   Connection handler for to the binary monitor
  *
  * \author  Bas Wassink <b.wassink@ziggo.nl>
  */
@@ -40,58 +40,149 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/ip.h>
+#include <stdint.h>
 #include <stdbool.h>
+#include "settings.h"
+#include "monitor.h"
 
-#define PORT 6510
+#include "vicemonapi.h"
 
-static int fd;
+#include "connection.h"
+
+
+/** \brief  Connection FD
+ */
+static int connection_fd = 0;
 
 
 
-bool connect_test(void)
+
+/** \brief  Connection to the binary monitor interface
+ *
+ * Uses the settings 'VICE/host' (str) and 'VICE/port' (int).
+ *
+ * \return  TRUE on success
+ */
+bool connection_open(void)
 {
     struct sockaddr_in sa;
+    int result;
+    const char *host = NULL;
+    int port = 6502;
+
+
+    /* get host and port from settings */
+    debug_msg("Getting host from settings ('VICE/host'):");
+    if (settings_get_str("VICE", "host", &host)) {
+        debug_msg("OK, got '%s'.", host);
+    } else {
+        debug_msg("Couldn't find key, defaulting to '127.0.0.1'.");
+        host = "127.0.0.1";
+    }
+    debug_msg("Getting port from settings ('VICE/port):");
+    if (settings_get_int("VICE", "port", &port)) {
+        debug_msg("OK, got %d.", port);
+    } else {
+        debug_msg("Couldn't find key, defaulting to 6502.");
+        port = 6502;
+    }
 
 
     sa.sin_family = AF_INET;
-    sa.sin_port = htons(PORT);
-    inet_pton(AF_INET, "127.0.0.1", &sa.sin_addr);
+    sa.sin_port = htons((uint16_t)port);
+    inet_pton(AF_INET, host, &sa.sin_addr);
+    connection_fd = -1;
 
-    int result;
+    debug_msg("Trying to connect to %s:%d.", host, port);
 
-    debug_msg("Trying to connect to %s:%d.", "127.0.0.1", PORT);
-
-    fd = socket(AF_INET, SOCK_STREAM, 0);
-    if (fd < 0) {
+    connection_fd = socket(AF_INET, SOCK_STREAM, 0);
+    if (connection_fd < 0) {
         debug_msg("Failed to open socket.");
         return false;
     }
 
-    result = connect(fd, &sa, sizeof(sa));
+    result = connect(connection_fd, (struct sockaddr *)&sa, sizeof(sa));
     if (result < 0) {
         debug_msg("failed to connect.");
-        close(fd);
+        close(connection_fd);
         return false;
     }
     debug_msg("OK, connected.");
     return true;
 }
 
-#if 0
-void connect_send_reset(void)
+
+void connection_close(void)
 {
-    const unsigned char reset_command[] = {
-        0x02, 0x01, 
-        0xff, 0xff, 0xff, 0xff, 
-        0xaf, 0xe9, 0x23, 0x3d, 
+    if (connection_fd >= 0) {
+        close(connection_fd);
+        connection_fd = -1;
+    }
+}
+
+
+
+
+
+
+/** \brief  Send command
+ *
+ * \param[in]   cmd command string
+ * \param[in]   len length of \a command
+ *
+ * \return  request ID or -1 on error
+ */
+bool connection_send_cmd(const uint8_t *cmd, size_t len, uint32_t *id)
+{
+    uint8_t header[2] = { MON_STX, MON_API };
+
+    send(connection_fd, header, 2,0);
+    ssize_t result = send(connection_fd, cmd, len, 0);
+    return result >= 0 ? true : false;
+}
+
+
+
+void connection_send_reset(void)
+{
+    const uint8_t reset_command[] = {
+        0x01, 0x00, 0x00, 0x00,
+        0xaf, 0xe9, 0x23, 0x3d,
 
         0xcc,
 
         0x00,
     };
+    uint32_t req_id;
+
+    connection_send_cmd(reset_command, sizeof(reset_command), &req_id);
 
 }
-#endif
 
 
+mon_cmd_t *create_command(uint8_t type, const uint8_t *data, size_t len)
+{
+    mon_cmd_t *cmd = malloc(sizeof *cmd + len);
 
+    cmd->cmd_len[0] = (len << 24) & 0xff;
+    cmd->cmd_len[1] = (len << 16) & 0xff;
+    cmd->cmd_len[2] = (len << 8) & 0xff;
+    cmd->cmd_len[3] = len & 0xff;
+
+    cmd->req_id[0] = 0;
+    cmd->req_id[1] = 0;
+    cmd->req_id[2] = 0;
+    cmd->req_id[3] = 0;
+
+    cmd->cmd_type = type;
+
+    memcpy(cmd->cmd_body, data, len);
+
+    return cmd;
+}
+
+
+void free_command(mon_cmd_t *cmd)
+{
+    free(cmd);
+}

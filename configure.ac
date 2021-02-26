@@ -43,6 +43,14 @@ AC_CHECK_PROG([HAVE_GLIB_COMPILE_RESOURCES], [glib-compile-resources], [yes], [n
 dnl Check for ranlib
 AC_PROG_RANLIB
 
+dnl
+dnl Check headers
+dnl
+AC_CHECK_HEADER([arpa/inet.h])
+AC_CHECK_HEADER([netinet/ip.h])
+AC_CHECK_HEADER([sys/socket.h])
+AC_CHECK_HEADER([sys/stat.h])
+AC_CHECK_HEADER([sys/types.h])
 
 dnl
 dnl Check for libraries

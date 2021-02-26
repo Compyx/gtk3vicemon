@@ -1,7 +1,7 @@
 /* vim: set et ts=4 sw=4 sts=4 syntax=c.doxygen: */
 
-/** \file   connect_test.h
- * \brief   Test connecting to the binary monitor - header
+/** \file   log.h
+ * \brief   Logging - header
  *
  * \author  Bas Wassink <b.wassink@ziggo.nl>
  */
@@ -31,31 +31,21 @@
     Public License instead of this License.
 */
 
+#ifndef LOG_H_
+#define LOG_H_
 
-#ifndef MON_CONNECTION_H_
-#define MON_CONNECTION_H_
-
-#include <stdbool.h>
-#include <stdint.h>
-#include <stddef.h>
-
-
-/** \brief  Monitor command object
- */
-typedef struct mon_cmd_s {
-    uint8_t cmd_len[4];     /**< command length (4) */
-    uint8_t req_id[4];      /**< request ID (4) */
-    uint8_t cmd_type;       /**< command type */
-    uint8_t cmd_body[];     /**< command body (variable) */
-} mon_cmd_t;
+typedef enum log_level_e {
+    LOG_NONE = 0,
+    LOG_DEBUG,
+    LOG_INFO,
+    LOG_WARN,
+    LOG_ERR
+} log_level_t;
 
 
-bool connection_open(void);
-void connection_close(void);
+void log_init(void);
+void log_exit(void);
+void log_msg(log_level_t level, const char *msg, ...);
 
-bool connection_send_cmd(const uint8_t *cmd, size_t len, uint32_t *req_id);
-void connection_send_reset(void);
-
-mon_cmd_t *create_command(uint8_t type, const uint8_t *data, size_t len);
-void free_command(mon_cmd_t *cmd);
 #endif
+

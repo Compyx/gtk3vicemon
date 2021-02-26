@@ -87,7 +87,7 @@ static GtkWidget *led_create(int state)
     GtkWidget *draw;
 
 
-    debug_msg("Connent state = %s", state ? "true" : "fqlse");
+    debug_msg("Connection state = %s", state ? "true" : "fqlse");
     connect_state = state;
 
     draw = gtk_drawing_area_new();
@@ -105,16 +105,16 @@ GtkWidget *connection_widget_create(int state)
     GtkWidget *label;
 
     const char *host = NULL;
-    const char *port = NULL;
+    int port = 0;
 
     gchar buffer[1024];
 
-    settings_get("VICE", "host", &host);
-    settings_get("VICE", "port", &port);
+    settings_get_str("VICE", "host", &host);
+    settings_get_int("VICE", "port", &port);
 
     grid = gtk_grid_new();
 
-    g_snprintf(buffer, sizeof(buffer), "%s:%s", host, port);
+    g_snprintf(buffer, sizeof(buffer), "%s:%d", host, port);
     label = gtk_label_new(buffer);
 
     connect_state = state;

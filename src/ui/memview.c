@@ -1,7 +1,7 @@
 /* vim: set et ts=4 sw=4 sts=4 syntax=c.doxygen: */
 
-/** \file   appwindow.c
- * \brief   Main application window
+/** \file   memview.c
+ * \brief   Memory view
  *
  * \author  Bas Wassink <b.wassink@ziggo.nl>
  */
@@ -34,56 +34,17 @@
 #include "config.h"
 #include <gtk/gtk.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #include "debug.h"
-#include "log.h"
-#include "statusbar.h"
 #include "connection.h"
 
-#include "appwindow.h"
 
-
-/** \brief  Handler for the 'destroy 'even of the main application window
- *
- * Disconnects from the binary monitor.
- *
- * \param[in]   window  widget triggering the event
- * \param[in]   data    extra even data (unused)
- */
-static void on_destroy(GtkWidget *window, gpointer data)
+GtkWidget *memview_create(uint32_t addr, uint8_t *data, size_t len)
 {
-    debug_msg("Destroy caught, disconnecting from binary monitor.");
-    log_msg(LOG_INFO, "Exiting application.");
-    log_exit();
-    connection_close();
+    GtkWidget *grid;
+
+    grid = gtk_grid_new();
+    return grid;
 }
 
-
-/** \brief  Create the main application window
- *
- * Attempts to open a connection to the remove vice monitor.
- *
- * \param[in]   app GtkApplication
- *
- * \return  GtkApplicationWindow
- */
-GtkWidget *appwindow_create(GtkApplication *app)
-{
-    GtkWidget *window;
-    GtkWidget *statusbar;
-    bool conn_res;
-
-    window = gtk_application_window_new(app);
-    gtk_window_set_default_size(GTK_WINDOW(window), 640, 480);
-    gtk_window_set_title(GTK_WINDOW(window), "Gtk3 VICE Monitor");
-
-    conn_res = connection_open();
-    statusbar = statusbar_create(conn_res);
-    gtk_container_add(GTK_CONTAINER(window), statusbar);
-
-    connection_send_reset();
-
-    g_signal_connect(window, "destroy", G_CALLBACK(on_destroy), NULL);
-
-    return window;
-}

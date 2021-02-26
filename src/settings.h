@@ -39,13 +39,17 @@
 
 #define SETTINGS_DIR    "~/.config/gtk3vicemon"
 
-char *settings_get_dir(void);
-gboolean settings_create_dir(void);
-gboolean settings_read(void);
-gboolean settings_write(void);
-gboolean settings_get(const char *group, const char *key, const char **value);
-gboolean settings_set(const char *group, const char *key, const char *value);
-gboolean settings_init(void);
-void settings_exit(void);
+char *      settings_get_dir(void);
+gboolean    settings_create_dir(void);
+
+gboolean    settings_read(void);
+gboolean    settings_write(void);
+
+gboolean    settings_get_str(const char *group, const char *key, const char **value);
+gboolean    settings_set_str(const char *group, const char *key, const char *value);
+gboolean    settings_get_int(const char *group, const char *key, int *value);
+
+gboolean    settings_init(void);
+void        settings_exit(void);
 
 #endif

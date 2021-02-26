@@ -39,7 +39,7 @@
 #include "app-resources.h"
 #include "appwindow.h"
 #include "debug.h"
-#include "connect_test.h"
+#include "log.h"
 #include "settings.h"
 
 
@@ -57,7 +57,7 @@ static void on_app_quit(GSimpleAction *action,
                         gpointer       data)
 {
     debug_msg("called: exiting application.");
-    gtk_widget_destroy(GTK_WIDGET(main_window));
+   gtk_widget_destroy(GTK_WIDGET(main_window));
 }
 
 
@@ -104,6 +104,8 @@ static void on_app_activate(GtkApplication *app,
     GMenuModel *app_menu;
     GtkWidget *window;
 
+    log_init();
+    log_msg(LOG_DEBUG, "Log init.\n");
     builder = gtk_builder_new_from_resource(
             "/org/vice/gtk3vicemon/app-menu.xml");
     app_menu = G_MENU_MODEL(gtk_builder_get_object(builder, "app-menu"));

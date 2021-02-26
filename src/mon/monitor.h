@@ -1,7 +1,7 @@
 /* vim: set et ts=4 sw=4 sts=4 syntax=c.doxygen: */
 
-/** \file   connect_test.h
- * \brief   Test connecting to the binary monitor - header
+/** \file   monitor.h
+ * \brief   Settings for the monitor
  *
  * \author  Bas Wassink <b.wassink@ziggo.nl>
  */
@@ -31,31 +31,16 @@
     Public License instead of this License.
 */
 
+#ifndef MON_MONITOR_H_
+#define MON_MONITOR_H_
 
-#ifndef MON_CONNECTION_H_
-#define MON_CONNECTION_H_
-
-#include <stdbool.h>
-#include <stdint.h>
-#include <stddef.h>
-
-
-/** \brief  Monitor command object
+/** \brief  STX command
  */
-typedef struct mon_cmd_s {
-    uint8_t cmd_len[4];     /**< command length (4) */
-    uint8_t req_id[4];      /**< request ID (4) */
-    uint8_t cmd_type;       /**< command type */
-    uint8_t cmd_body[];     /**< command body (variable) */
-} mon_cmd_t;
+#define MON_STX 0x02
+
+/** \brief  Binary monitor API version
+ */
+#define MON_API 0x01
 
 
-bool connection_open(void);
-void connection_close(void);
-
-bool connection_send_cmd(const uint8_t *cmd, size_t len, uint32_t *req_id);
-void connection_send_reset(void);
-
-mon_cmd_t *create_command(uint8_t type, const uint8_t *data, size_t len);
-void free_command(mon_cmd_t *cmd);
 #endif

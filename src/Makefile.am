@@ -21,12 +21,15 @@ gtk3vicemon_SOURCES = \
 	main.c \
 	app-resources.c \
 	app-resources.h \
+	log.c \
 	settings.c
 
 
 EXTRA_DIST = \
 	debug.h \
-	settings.h
+	log.h \
+	settings.h \
+	vicemonapi.h
 
 RESOURCE_FILES = \
 	$(top_srcdir)/data/ui/app-menu.xml
@@ -57,4 +60,6 @@ BUILT_SOURCES = \
 	app-resources.h
 
 
+clean-local:
+	rm -f $(BUILT_SOURCES)
 

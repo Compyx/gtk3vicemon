@@ -11,9 +11,10 @@ AM_LDFLAGS = @MON_LDFLAGS@
 noinst_LIBRARIES = libmon.a
 
 libmon_a_SOURCES = \
-	connect_test.c
+	connection.c
 
 EXTRA_DIST = \
-	connect_test.h
+	connection.h \
+	monitor.h
 
 

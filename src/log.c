@@ -1,7 +1,7 @@
 /* vim: set et ts=4 sw=4 sts=4 syntax=c.doxygen: */
 
-/** \file   connect_test.h
- * \brief   Test connecting to the binary monitor - header
+/** \file   log.c
+ * \brief   Logging
  *
  * \author  Bas Wassink <b.wassink@ziggo.nl>
  */
@@ -32,30 +32,71 @@
 */
 
 
-#ifndef MON_CONNECTION_H_
-#define MON_CONNECTION_H_
-
-#include <stdbool.h>
-#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <stddef.h>
 
+#include "config.h"
+#include "debug.h"
+#include "settings.h"
 
-/** \brief  Monitor command object
+#include "log.h"
+
+
+/** \brief  Log level labels
+ *
+ * The 'none' label should never be used, but is included for sanity checks.
  */
-typedef struct mon_cmd_s {
-    uint8_t cmd_len[4];     /**< command length (4) */
-    uint8_t req_id[4];      /**< request ID (4) */
-    uint8_t cmd_type;       /**< command type */
-    uint8_t cmd_body[];     /**< command body (variable) */
-} mon_cmd_t;
+static const char * level_labels[] = {
+    "[none   ]",
+    "[debug  ]",
+    "[info   ]",
+    "[warning]",
+    "[error  ]" };
 
 
-bool connection_open(void);
-void connection_close(void);
 
-bool connection_send_cmd(const uint8_t *cmd, size_t len, uint32_t *req_id);
-void connection_send_reset(void);
+static FILE *log_fp = NULL;
+static int log_level;
 
-mon_cmd_t *create_command(uint8_t type, const uint8_t *data, size_t len);
-void free_command(mon_cmd_t *cmd);
-#endif
+
+void log_init(void)
+{
+    const char *path = NULL;
+
+    settings_get_str("Monitor", "logfile", &path);
+    settings_get_int("Monitor", "loglevel", &log_level);
+
+    if (path != NULL) {
+        log_fp = fopen(path, "wb");
+        if (log_fp == NULL) {
+            fprintf(stderr, "failed to open log file '%s',"
+                    " reverting to stdout.\n",
+                     path);
+        }
+    }
+}
+
+
+void log_exit(void)
+{
+    if (log_fp != NULL) {
+        fclose(log_fp);
+    }
+}
+
+
+
+void log_msg(log_level_t level, const char *msg, ...)
+{
+    va_list ap;
+
+    if (log_level == 0
+            || level >= sizeof level_labels / sizeof level_labels[1]) {
+        return;
+    }
+    fprintf(log_fp, "[%s] ", level_labels[level]);
+    vfprintf(log_fp, msg, ap);
+    printf("\n");
+    fflush(stdout);
+}

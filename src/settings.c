@@ -48,7 +48,8 @@
 #include "settings.h"
 
 
-
+/** \brief  Reference to the settings.ini file
+ */
 static GKeyFile *keyfile;
 
 
@@ -71,6 +72,19 @@ char *settings_get_dir(void)
 
 
 /** \brief  Create XDG path to the application config dir
+ *
+ * This function does a couple of things.
+ *
+ * First it checks the XDG_CONFIG_HOME environment variable to find the user's
+ * config dir, if that fails the config dir is set to the XDG default of
+ * `$HOME/.config`.
+ * It then checks if `HOME/.config` exists and if it doesn't, it tries to create
+ * the directory. If that fails, the function will return FALSE and the application
+ * should exit.
+ *
+ * The it checks if $XDG_HOME/gtk3vicemon exists and is a directory. If it isn't
+ * found the directory is created and if it is found but not a directory this
+ * function will return FALSE.
  *
  * \return  TRUE on success
  */
@@ -138,7 +152,15 @@ gboolean settings_create_dir(void)
 }
 
 
-
+/** \brief  Read the settings from file and if that fails create the setting in memory.
+ *
+ * Attempts to read `~/.config/gtk3vicemon/settings.ini`.
+ *
+ * If that fails it will read the default configuration from the app resources.
+ *
+ * \return  FALSE if both reading the settings from file and reading from the
+ *          resources failed
+ */
 gboolean settings_read(void)
 {
     char *path;
@@ -189,13 +211,30 @@ gboolean settings_read(void)
 }
 
 
-gboolean settings_set(const char *group, const char *key, const char *value)
+/** \brief  Set a string setting at \a group -> \a key to \a value
+ *
+ * \param[in]   group   group
+ * \param[in]   key     key
+ * \param[in]   value   new value
+ *
+ * \return  TRUE on success
+ */
+gboolean settings_set_str(const char *group, const char *key, const char *value)
 {
+    debug_msg("This is supposed to set '%s/%s' to '%s'.", group, key, value);
     return TRUE;
 }
 
 
-gboolean settings_get(const char *group, const char *key, const char **value)
+/** \brief  Get a string setting from \a group with \a key
+ *
+ * \param[in]   group   group
+ * \param[in]   key     key
+ * \param[out]  value   result
+ *
+ * \return  TRUE on success
+ */
+gboolean settings_get_str(const char *group, const char *key, const char **value)
 {
     gchar *s;
     GError *err = NULL;
@@ -212,6 +251,27 @@ gboolean settings_get(const char *group, const char *key, const char **value)
 
 
 
+/** \brief  Get an integer setting from \a group with \a key
+ *
+ * \param[in]   group   group
+ * \param[in]   key     key
+ * \param[out]  value   result
+ *
+ * \return  TRUE on success
+ */
+gboolean settings_get_int(const char *group, const char *key, int *value)
+{
+    GError *err = NULL;
+    int i;
+
+    i = g_key_file_get_integer(keyfile, group, key, &err);
+    if (i == 0 && err->code != 0) {
+        debug_msg("oops: %d: %s", err->code, err->message);
+        return FALSE;
+    }
+    *value = i;
+    return TRUE;
+}
 
 
 /** \brief  Initialize the settings system
