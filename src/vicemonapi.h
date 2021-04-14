@@ -35,7 +35,7 @@
 #define VICEMONAPI_H_
 
 
-/** \brief  Binary monitor commands
+/** \brief  Binary monitor command codes
  */
 typedef enum vicemon_command_e {
     MON_CMD_INVALID = 0x00,
@@ -68,6 +68,7 @@ typedef enum vicemon_command_e {
     MON_CMD_BANKS_AVAILABLE = 0x82,
     MON_CMD_REGISTERS_AVAILABLE = 0x83,
     MON_CMD_DISPLAY_GET = 0x84,
+    MON_CMD_VICE_INFO = 0x85,
 
     MON_CMD_EXIT = 0xaa,
     MON_CMD_QUIT = 0xbb,
@@ -76,6 +77,8 @@ typedef enum vicemon_command_e {
 } vicemon_command_t;
 
 
+/** \brief  Binary monitor response codes
+ */
 typedef enum vicemon_response {
     MON_RESPONSE_MEM_GET = 0x01,
     MON_RESPONSE_MEM_SET = 0x02,
@@ -108,6 +111,7 @@ typedef enum vicemon_response {
     MON_RESPONSE_BANKS_AVAILABLE = 0x82,
     MON_RESPONSE_REGISTERS_AVAILABLE = 0x83,
     MON_RESPONSE_DISPLAY_GET = 0x84,
+    MON_RESPONSE_VICE_INFO = 0x85,
 
     MON_RESPONSE_EXIT = 0xaa,
     MON_RESPONSE_QUIT = 0xbb,
@@ -116,6 +120,8 @@ typedef enum vicemon_response {
 } vicemon_responst;
 
 
+/** \brief  Binary monitor error codes
+ */
 typedef enum vicemon_error_e {
     MON_ERR_OK = 0x00,
     MON_ERR_OBJECT_MISSING = 0x01,

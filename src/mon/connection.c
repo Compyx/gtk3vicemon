@@ -45,6 +45,8 @@
 #include "settings.h"
 #include "monitor.h"
 
+#include "log.h"
+#include "../ui/logview.h"
 #include "vicemonapi.h"
 
 #include "connection.h"
@@ -70,8 +72,9 @@ bool connection_open(void)
     const char *host = NULL;
     int port = 6502;
 
-
     /* get host and port from settings */
+
+
     debug_msg("Getting host from settings ('VICE/host'):");
     if (settings_get_str("VICE", "host", &host)) {
         debug_msg("OK, got '%s'.", host);
@@ -87,27 +90,37 @@ bool connection_open(void)
         port = 6502;
     }
 
+    logview_add(NULL, "Connecting to %s:%d: ", host, port);
+
 
     sa.sin_family = AF_INET;
     sa.sin_port = htons((uint16_t)port);
     inet_pton(AF_INET, host, &sa.sin_addr);
     connection_fd = -1;
 
+    log_msg(LOG_INFO, "Connecting to %s:%d\n", host, port);
+
     debug_msg("Trying to connect to %s:%d.", host, port);
 
     connection_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (connection_fd < 0) {
         debug_msg("Failed to open socket.");
+        log_msg(LOG_ERR, "Failed open socket.\n");
+        logview_add("err", "Failed to open socket.\n");
         return false;
     }
 
     result = connect(connection_fd, (struct sockaddr *)&sa, sizeof(sa));
     if (result < 0) {
         debug_msg("failed to connect.");
+        log_msg(LOG_ERR, "Failed to connect to %s:%d\n", host, port);
+        logview_add("err", "Failed to connect.\n");
         close(connection_fd);
         return false;
     }
     debug_msg("OK, connected.");
+    log_msg(LOG_INFO, "OK\n");
+    logview_add("ok", "OK.\n");
     return true;
 }
 
@@ -158,6 +171,24 @@ void connection_send_reset(void)
     connection_send_cmd(reset_command, sizeof(reset_command), &req_id);
 
 }
+
+
+void connection_send_clearscreen(void)
+{
+    const uint8_t clear_cmd[] = {
+        0x0f, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00,
+
+        0x72, 0x06,
+        '\\', 'x', '9' ,'3',
+        '\\', 'r'
+    };
+    uint32_t req_id;
+
+    connection_send_cmd(clear_cmd, sizeof(clear_cmd), &req_id);
+}
+
+
 
 
 mon_cmd_t *create_command(uint8_t type, const uint8_t *data, size_t len)

@@ -20,9 +20,11 @@ noinst_LIBRARIES = libui.a
 libui_a_SOURCES = \
 	appwindow.c \
 	statusbar.c \
-	connection-widget.c
+	connection-widget.c \
+	logview.c
 
 EXTRA_DIST = \
 	appwindow.h \
 	statusbar.h \
-	connection-widget.h
+	connection-widget.h \
+	logview.h

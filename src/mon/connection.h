@@ -55,6 +55,7 @@ void connection_close(void);
 
 bool connection_send_cmd(const uint8_t *cmd, size_t len, uint32_t *req_id);
 void connection_send_reset(void);
+void connection_send_clearscreen(void);
 
 mon_cmd_t *create_command(uint8_t type, const uint8_t *data, size_t len);
 void free_command(mon_cmd_t *cmd);

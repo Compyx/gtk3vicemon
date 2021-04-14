@@ -1,2 +1,4 @@
-[debug] Log init.
-[info] Exiting application.
+[debug  ] Log init.
+[info   ] Connecting to 127.0.0.1:6502
+[info   ] OK
+[info   ] Exiting application.

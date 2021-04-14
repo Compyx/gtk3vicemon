@@ -1,7 +1,7 @@
 /* vim: set et ts=4 sw=4 sts=4 syntax=c.doxygen: */
 
-/** \file   log.h
- * \brief   Logging - header
+/** \file   logview.h
+ * \brief   Log message view - header
  *
  * \author  Bas Wassink <b.wassink@ziggo.nl>
  */
@@ -31,22 +31,15 @@
     Public License instead of this License.
 */
 
-#ifndef LOG_H_
-#define LOG_H_
 
-typedef enum log_level_e {
-    LOG_NONE = 0,
-    LOG_DEBUG,
-    LOG_INFO,
-    LOG_WARN,
-    LOG_ERR
-} log_level_t;
+#ifndef VICEMON_UI_LOGVIEW_H
+#define VICEMON_UI_LOGVIEW_H
+
+#include "config.h"
+#include <gtk/gtk.h>
 
 
-void log_init(void);
-void log_exit(void);
-void log_msg(log_level_t level, const char *msg, ...);
-const char *log_level_string(log_level_t level);
+GtkWidget *logview_create(void);
+void logview_add(const char *tag, const char *msg, ...);
 
 #endif
-

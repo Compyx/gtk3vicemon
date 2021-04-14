@@ -35,6 +35,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stddef.h>
+#include <stdarg.h>
 
 #include "config.h"
 #include "debug.h"
@@ -57,7 +58,15 @@ static const char * level_labels[] = {
 
 
 static FILE *log_fp = NULL;
-static int log_level;
+
+/** \brief  Log level cutoff
+ *
+ * Level 0 means no logging at all, 1-4 mean filtering out DEBUG, INFO, WARNING
+ * and ERROR.
+ *
+ * Setting this to LOG_WARNING will only display WARNING and ERROR levels.
+ */
+static log_level_t log_level = LOG_INFO;
 
 
 void log_init(void)
@@ -65,7 +74,7 @@ void log_init(void)
     const char *path = NULL;
 
     settings_get_str("Monitor", "logfile", &path);
-    settings_get_int("Monitor", "loglevel", &log_level);
+    settings_get_int("Monitor", "loglevel", (int *)&log_level);
 
     if (path != NULL) {
         log_fp = fopen(path, "wb");
@@ -86,17 +95,34 @@ void log_exit(void)
 }
 
 
-
+/** \brief  Log message
+ *
+ * \param[in]   level   log level, determines the message should be logged
+ * \param[in]   msg     format string for the message
+ * \param[in]   ...     arguments for the message, if any
+ */
 void log_msg(log_level_t level, const char *msg, ...)
 {
-    va_list ap;
 
     if (log_level == 0
             || level >= sizeof level_labels / sizeof level_labels[1]) {
         return;
     }
-    fprintf(log_fp, "[%s] ", level_labels[level]);
-    vfprintf(log_fp, msg, ap);
-    printf("\n");
-    fflush(stdout);
+
+    if (level >= log_level) {
+        va_list ap;
+
+        va_start(ap, msg);
+        fprintf(log_fp, "%s ", level_labels[level]);
+        vfprintf(log_fp, msg, ap);
+        va_end(ap);
+        printf("\n");
+        fflush(stdout);
+    }
+}
+
+
+const char *log_level_string(log_level_t level)
+{
+    return level_labels[level];
 }

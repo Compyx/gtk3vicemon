@@ -39,6 +39,7 @@
 #include "log.h"
 #include "statusbar.h"
 #include "connection.h"
+#include "logview.h"
 
 #include "appwindow.h"
 
@@ -53,7 +54,7 @@
 static void on_destroy(GtkWidget *window, gpointer data)
 {
     debug_msg("Destroy caught, disconnecting from binary monitor.");
-    log_msg(LOG_INFO, "Exiting application.");
+    log_msg(LOG_INFO, "Exiting application.\n");
     log_exit();
     connection_close();
 }
@@ -70,6 +71,8 @@ static void on_destroy(GtkWidget *window, gpointer data)
 GtkWidget *appwindow_create(GtkApplication *app)
 {
     GtkWidget *window;
+    GtkWidget *grid;
+    GtkWidget *logview;
     GtkWidget *statusbar;
     bool conn_res;
 
@@ -77,11 +80,22 @@ GtkWidget *appwindow_create(GtkApplication *app)
     gtk_window_set_default_size(GTK_WINDOW(window), 640, 480);
     gtk_window_set_title(GTK_WINDOW(window), "Gtk3 VICE Monitor");
 
+    grid = gtk_grid_new();
+
+
+    logview = logview_create();
+    gtk_grid_attach(GTK_GRID(grid), logview, 0, 0, 1, 1);
+
+
     conn_res = connection_open();
     statusbar = statusbar_create(conn_res);
-    gtk_container_add(GTK_CONTAINER(window), statusbar);
+    gtk_grid_attach(GTK_GRID(grid), statusbar, 0, 1, 1, 1);
 
+    gtk_container_add(GTK_CONTAINER(window), grid);
     connection_send_reset();
+
+
+    //connection_send_clearscreen();
 
     g_signal_connect(window, "destroy", G_CALLBACK(on_destroy), NULL);
 
