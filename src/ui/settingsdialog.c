@@ -85,7 +85,7 @@ static void on_response(GtkDialog *dialog, int response_id, gpointer data)
 static GtkWidget *create_indented_label(const char *text)
 {
     GtkWidget *label = gtk_label_new(NULL);
-    gtk_label_set_markup(GTK_LABEL(text), text);
+    gtk_label_set_markup(GTK_LABEL(label), text);
     gtk_widget_set_halign(label, GTK_ALIGN_START);
     g_object_set(label, "margin-left", 16, NULL);
     return label;
