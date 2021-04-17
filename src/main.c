@@ -38,6 +38,7 @@
 
 #include "app-resources.h"
 #include "appwindow.h"
+#include "settingsdialog.h"
 #include "debug.h"
 #include "log.h"
 #include "settings.h"
@@ -67,11 +68,16 @@ static void on_app_quit(GSimpleAction *action,
  * \param[in]   parameter   action parameter
  * \param[in]   dat         user data
  */
-static void on_app_preferences(GSimpleAction *action,
-                        GVariant      *parameter,
-                        gpointer       data)
+static void on_app_settings(GSimpleAction *action,
+                            GVariant      *parameter,
+                            gpointer       data)
 {
-    debug_msg("called: showing preferences.");
+    GtkWidget *dialog;
+
+    debug_msg("called: showing settings.");
+
+    dialog = settings_dialog_new(main_window);
+    gtk_widget_show(dialog);
 
 }
 
@@ -86,8 +92,8 @@ static const GActionEntry app_actions[] = {
     },
 
     {
-        .name = "preferences",
-        .activate = on_app_preferences
+        .name = "settings",
+        .activate = on_app_settings
     }
 };
 

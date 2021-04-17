@@ -21,10 +21,12 @@ libui_a_SOURCES = \
 	appwindow.c \
 	statusbar.c \
 	connection-widget.c \
-	logview.c
+	logview.c \
+	settingsdialog.c
 
 EXTRA_DIST = \
 	appwindow.h \
 	statusbar.h \
 	connection-widget.h \
-	logview.h
+	logview.h \
+	settingsdialog.h
