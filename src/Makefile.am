@@ -21,12 +21,14 @@ gtk3vicemon_SOURCES = \
 	main.c \
 	app-resources.c \
 	app-resources.h \
+	hexdump.c \
 	log.c \
 	settings.c
 
 
 EXTRA_DIST = \
 	debug.h \
+	hexdump.h \
 	log.h \
 	settings.h \
 	vicemonapi.h

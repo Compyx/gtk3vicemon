@@ -1,4 +1,2 @@
 [debug  ] Log init.
-[info   ] Connecting to 127.0.0.1:6502
-[error  ] Failed to connect to 127.0.0.1:6502
 [info   ] Exiting application.

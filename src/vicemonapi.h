@@ -133,5 +133,14 @@ typedef enum vicemon_error_e {
     MON_ERR_CMD_FAILURE = 0x8f,
 } vicemon_error_t;
 
+
+/* Binary monitor command structure field offsets/sizes
+ */
+
+#define MON_CMD_STX_OFFSET  0x00
+#define MON_CMD_API_OFFSET  0x01
+#define MON_CMD_LEN_OFFSET  0x02
+#define MON_CMD_LEN_SIZE    0x04
+
 #endif
 

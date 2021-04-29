@@ -86,16 +86,16 @@ GtkWidget *appwindow_create(GtkApplication *app)
     logview = logview_create();
     gtk_grid_attach(GTK_GRID(grid), logview, 0, 0, 1, 1);
 
-
-    conn_res = connection_open();
+    conn_res = connect_gio();
     statusbar = statusbar_create(conn_res);
     gtk_grid_attach(GTK_GRID(grid), statusbar, 0, 1, 1, 1);
 
     gtk_container_add(GTK_CONTAINER(window), grid);
-    connection_send_reset();
 
-
-    //connection_send_clearscreen();
+    if (conn_res) {
+        connection_send_gio_reset();
+        connection_get_vice_version();
+    }
 
     g_signal_connect(window, "destroy", G_CALLBACK(on_destroy), NULL);
 

@@ -36,6 +36,9 @@
 
 #include "debug.h"
 
+#include <glib.h>
+#include <gio/gio.h>
+
 #include <arpa/inet.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -48,6 +51,7 @@
 #include "log.h"
 #include "../ui/logview.h"
 #include "vicemonapi.h"
+#include "hexdump.h"
 
 #include "connection.h"
 
@@ -206,14 +210,198 @@ mon_cmd_t *create_command(uint8_t type, const uint8_t *data, size_t len)
     cmd->req_id[3] = 0;
 
     cmd->cmd_type = type;
-
-    memcpy(cmd->cmd_body, data, len);
+    if (data != NULL && len > 0) {
+        memcpy(cmd->cmd_body, data, len);
+    }
 
     return cmd;
 }
 
 
+ssize_t connection_get_response(void)
+{
+    mon_response_t response;
+    ssize_t result;
+    uint8_t buffer[256];
+
+    result = recv(connection_fd, &buffer, sizeof(buffer), 0);
+    if (result >= 12) {
+        response.api_version = buffer[1];
+        response.body_len[0] = buffer[2];
+        response.body_len[1] = buffer[3];
+        response.body_len[2] = buffer[4];
+        response.body_len[3] = buffer[5];
+        response.type = buffer[6];
+        response.error_code = buffer[7];
+        response.request_id[0] = buffer[8];
+        response.request_id[1] = buffer[9];
+        response.request_id[2] = buffer[10];
+        response.request_id[3] = buffer[11];
+
+        debug_msg("response API: %02x", response.api_version);
+    }
+
+    return result;
+}
+
+
+
 void free_command(mon_cmd_t *cmd)
 {
     free(cmd);
+}
+
+
+static GSocketConnection *connection;
+static GSocketClient *client;
+
+
+/** \brief  Connect to the VICE binary monitor socket
+ *
+ * \return  bool
+ */
+gboolean connect_gio(void)
+{
+    const char *host = NULL;
+    int port = 6502;
+    GError *error = NULL;
+
+    /* get host and port from settings */
+    debug_msg("Getting host from settings ('VICE/host'):");
+    if (settings_get_str("VICE", "host", &host)) {
+        debug_msg("OK, got '%s'.", host);
+    } else {
+        debug_msg("Couldn't find key, defaulting to '127.0.0.1'.");
+        host = "127.0.0.1";
+    }
+    debug_msg("Getting port from settings ('VICE/port):");
+    if (settings_get_int("VICE", "port", &port)) {
+        debug_msg("OK, got %d.", port);
+    } else {
+        debug_msg("Couldn't find key, defaulting to 6502.");
+        port = 6502;
+    }
+
+    logview_add(NULL, "Connecting to %s:%d: ", host, port);
+
+
+    client = g_socket_client_new();
+    connection = g_socket_client_connect_to_host(
+            client,
+            host,
+            (guint16)port,
+            NULL,
+            &error);
+    if (error != NULL) {
+        debug_msg("Error: %s\n", error->message);
+        logview_add("err", "failed: %s\n", error->message);
+        return FALSE;
+    }
+    logview_add("ok", "OK");
+    return TRUE;
+}
+
+
+void connection_send_gio_reset(void)
+{
+    GOutputStream *ostream;
+    GError *error = NULL;
+    const uint8_t msg[] = {
+        MON_STX, MON_API,
+        1, 0, 0, 0, /* length = 1*/
+        0, 1, 2, 3, /* req-id */
+        0xcc,
+        0x00
+    };
+
+
+    ostream = g_io_stream_get_output_stream(G_IO_STREAM(connection));
+    g_output_stream_write(
+            ostream,
+            msg,
+            sizeof(msg),
+            NULL,
+            &error);
+    if (error != NULL) {
+        debug_msg("error: %s\n", error->message);
+    }
+}
+
+
+int connection_wait_for_response_type(int type, uint8_t *buffer, size_t *len)
+{
+    return 0;
+}
+
+
+
+uint32_t connection_get_vice_version(void)
+{
+    GOutputStream *ostream;
+    GInputStream *istream;
+    GError *error = NULL;
+    const uint8_t msg[] = {
+        MON_STX, MON_API,
+        0, 0, 0, 0, /* length = 00 */
+        0, 1, 2, 3, /* req-id */
+        0x85,
+
+    };
+    uint8_t response[256] = { 0 };
+
+
+    ostream = g_io_stream_get_output_stream(G_IO_STREAM(connection));
+
+    g_output_stream_write(
+            ostream,
+            msg,
+            sizeof(msg),
+            NULL,
+            &error);
+    if (error != NULL) {
+        debug_msg("error: %s\n", error->message);
+    }
+
+    if (error != NULL) {
+        g_error_free(error);
+        error = NULL;
+    }
+
+
+    istream = g_io_stream_get_input_stream(G_IO_STREAM(connection));
+    g_input_stream_read(
+            istream,
+            response,
+            sizeof(response),
+            NULL,
+            &error);
+    if (error != NULL) {
+        debug_msg("Error: %s\n", error->message);
+        g_error_free(error);
+    }
+
+    hexdump(response, sizeof(response));
+
+    uint8_t main_ver_len = response[12];
+    debug_msg("main version len = %d\n", main_ver_len);
+
+    debug_msg("version = %d.%d.%d.%d\n",
+            response[12] + '0',
+            response[13] + '0',
+            response[14] + '0',
+            response[15] + '0');
+
+    return 0;
+
+
+
+
+}
+
+
+
+
+
+void connection_close_gio(void)
+{
 }

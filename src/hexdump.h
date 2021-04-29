@@ -1,7 +1,7 @@
 /* vim: set et ts=4 sw=4 sts=4 syntax=c.doxygen: */
 
-/** \file   connect_test.h
- * \brief   Test connecting to the binary monitor - header
+/** \file   hexdump.h
+ * \brief   Hexdump data - header
  *
  * \author  Bas Wassink <b.wassink@ziggo.nl>
  */
@@ -31,55 +31,12 @@
     Public License instead of this License.
 */
 
+#ifndef VICEMON_HEXDUMP_H
+#define VICEMON_HEXDUMP_H
 
-#ifndef MON_CONNECTION_H_
-#define MON_CONNECTION_H_
-
-#include <stdbool.h>
+#include <stdlib.h>
 #include <stdint.h>
-#include <stddef.h>
-#include <glib.h>
-#include <gio/gio.h>
 
-/** \brief  Monitor command object
- */
-typedef struct mon_cmd_s {
-    uint8_t cmd_len[4];     /**< command length (4) */
-    uint8_t req_id[4];      /**< request ID (4) */
-    uint8_t cmd_type;       /**< command type */
-    uint8_t cmd_body[];     /**< command body (variable) */
-} mon_cmd_t;
-
-
-typedef struct mon_response_s {
-    uint8_t api_version;
-    uint8_t body_len[4];
-    uint8_t type;
-    uint8_t error_code;
-    uint8_t request_id[4];
-    uint8_t body[];
-} mon_response_t;
-
-
-
-bool connection_open(void);
-void connection_close(void);
-
-bool connection_send_cmd(const uint8_t *cmd, size_t len, uint32_t *req_id);
-void connection_send_reset(void);
-void connection_send_clearscreen(void);
-
-mon_cmd_t *create_command(uint8_t type, const uint8_t *data, size_t len);
-void free_command(mon_cmd_t *cmd);
-
-
-
-ssize_t connection_get_response(void);
-
-/* GIO interface */
-gboolean connect_gio(void);
-
-void connection_send_gio_reset(void);
-uint32_t connection_get_vice_version(void);
+void hexdump(const uint8_t *data, size_t len);
 
 #endif

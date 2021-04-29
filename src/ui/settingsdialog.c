@@ -35,6 +35,7 @@
 #include <gtk/gtk.h>
 #include "debug.h"
 #include "settings.h"
+#include "log.h"
 
 #include "settingsdialog.h"
 
@@ -52,6 +53,16 @@ static GtkWidget *host_widget;
  */
 static GtkWidget *port_widget;
 
+
+/** \brief  Log filename widhet
+ */
+static GtkWidget *logfile_entry;
+
+
+static GtkWidget *logfile_button;
+
+
+static GtkWidget *loglevel_widget;
 
 
 /** \brief  Handler for the 'response' event of the settings dialog
@@ -92,13 +103,26 @@ static GtkWidget *create_indented_label(const char *text)
 }
 
 
+
+static GtkWidget *create_loglevel_widget(void)
+{
+    GtkWidget *widget;
+
+
+    widget = gtk_combo_box_text_new();
+    for (log_level_t x = LOG_NONE; x <= LOG_ERR; x++) {
+        gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(widget), NULL, log_level_string(x));
+    }
+    return widget;
+}
+
+
 /** \brief  Create widgets for the 'VICE' section of the ini file
  *
  * \return  GtkGrid
  */
-static GtkWidget *create_vice_section(void)
+static int create_vice_section(GtkWidget *grid, int row)
 {
-    GtkWidget *grid;
     GtkWidget *label;
     const char *host;
     int port;
@@ -106,31 +130,67 @@ static GtkWidget *create_vice_section(void)
     settings_get_str("VICE", "host", &host);
     settings_get_int("VICE", "port", &port);
 
-    grid = gtk_grid_new();
-    gtk_grid_set_row_spacing(GTK_GRID(grid), 8);
-    gtk_grid_set_column_spacing(GTK_GRID(grid), 16);
-
     label = gtk_label_new(NULL);
     gtk_label_set_markup(GTK_LABEL(label), "<b>VICE</b>");
     gtk_widget_set_halign(label, GTK_ALIGN_START);
-    gtk_grid_attach(GTK_GRID(grid), label, 0, 0, 2, 1);
+    gtk_grid_attach(GTK_GRID(grid), label, 0, row, 3, 1);
+    row ++;
 
     label = create_indented_label("Host:");
     host_widget = gtk_entry_new();
     gtk_entry_set_text(GTK_ENTRY(host_widget), host);
-    gtk_grid_attach(GTK_GRID(grid), label, 0, 1, 1, 1);
-    gtk_grid_attach(GTK_GRID(grid), host_widget, 1, 1, 1, 1);
+    gtk_grid_attach(GTK_GRID(grid), label, 0, row, 1, 1);
+    gtk_grid_attach(GTK_GRID(grid), host_widget, 1, row, 2, 1);
+    row ++;
 
     label = create_indented_label("Port:");
     port_widget = gtk_spin_button_new_with_range(0.0, 65535.0, 1.0);
     gtk_spin_button_set_digits(GTK_SPIN_BUTTON(port_widget), 0);
     gtk_spin_button_set_value(GTK_SPIN_BUTTON(port_widget), (gdouble)port);
-    gtk_grid_attach(GTK_GRID(grid), label, 0, 2, 1, 1);
-    gtk_grid_attach(GTK_GRID(grid), port_widget, 1, 2, 1, 1);
+    gtk_grid_attach(GTK_GRID(grid), label, 0, row, 1, 1);
+    gtk_grid_attach(GTK_GRID(grid), port_widget, 1, row, 1, 1);
+    row++;
 
-    return grid;
+    return row;
 }
 
+
+/** \brief  Create widgets for the 'Monitor' section of the ini file
+ *
+ * \return  GtkGrid
+ */
+static int create_monitor_section(GtkWidget *grid, int row)
+{
+    GtkWidget *label;
+    const char *logfile;
+    int loglevel;
+
+    settings_get_str("Monitor", "logfile", &logfile);
+    settings_get_int("Monitor", "loglevel", &loglevel);
+
+    label = gtk_label_new(NULL);
+    gtk_label_set_markup(GTK_LABEL(label), "<b>Monitor</b>");
+    gtk_widget_set_halign(label, GTK_ALIGN_START);
+    gtk_grid_attach(GTK_GRID(grid), label, 0, row, 2, 1);
+    row++;
+
+    label = create_indented_label("Log file:");
+    logfile_entry = gtk_entry_new();
+    gtk_entry_set_text(GTK_ENTRY(logfile_entry),logfile);
+    gtk_grid_attach(GTK_GRID(grid), label, 0, row, 1, 1);
+    gtk_grid_attach(GTK_GRID(grid), logfile_entry, 1, row, 1, 1);
+    logfile_button = gtk_button_new_with_label("Browse ...");
+    gtk_grid_attach(GTK_GRID(grid), logfile_button, 2, row, 1, 1);
+    row++;
+
+    label = create_indented_label("Log level:");
+    loglevel_widget = create_loglevel_widget();
+    gtk_grid_attach(GTK_GRID(grid), label, 0, row, 1, 1);
+    gtk_grid_attach(GTK_GRID(grid), loglevel_widget, 1, row, 1, 1);
+    row++;
+
+    return row;
+}
 
 
 /** \brief  Create content widget for the dialog
@@ -141,13 +201,19 @@ static GtkWidget *create_vice_section(void)
 static GtkWidget *create_content_widget(void)
 {
     GtkWidget *grid;
+    int row = 0;
 
     grid = gtk_grid_new();
     gtk_grid_set_row_spacing(GTK_GRID(grid), 8);
     gtk_grid_set_column_spacing(GTK_GRID(grid), 16);
-    g_object_set(grid, "margin-bottom", 16, NULL);
+    g_object_set(grid,
+            "margin-bottom", 16,
+            "margin-left", 8,
+            "margin-right", 8,
+            NULL);
 
-    gtk_grid_attach(GTK_GRID(grid), create_vice_section(), 0, 0, 1, 1);
+    row = create_vice_section(grid, row);
+    row = create_monitor_section(grid, row);
 
     return grid;
 }

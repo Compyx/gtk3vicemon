@@ -1,4 +1,7 @@
 # files
+.swp
+*~
+.exrc
 Makefile
 Makefile.in
 aclocal.m4
